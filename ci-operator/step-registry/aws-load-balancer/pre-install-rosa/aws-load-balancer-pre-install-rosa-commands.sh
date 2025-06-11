@@ -19,11 +19,9 @@ MANIFEST_DIR="/tmp/albo-manifests"
 CCOCTL_OUTPUT="/tmp/ccoctl-output"
 E2E_INPUT_DIR="${SHARED_DIR}"
 E2E_INPUT_WAFV2_WEBACL="wafv2-webacl"
-E2E_INPUT_WAF_WEBACL="waf-webacl"
 E2E_INPUT_OPERATOR_ROLE_ARN="operator-role-arn"
 E2E_INPUT_CONTROLLER_ROLE_ARN="controller-role-arn"
 E2E_WAFV2_WEB_ACL_NAME="echoserver-acl-${UNIQUE_HASH}"
-E2E_WAF_WEB_ACL_NAME="echoserverclassicacl${UNIQUE_HASH}"
 
 if [ -f "${AWSCRED}" ]; then
     echo "=> configuring aws"
@@ -83,8 +81,3 @@ oc -n openshift-config set data secret pull-secret --from-file=.dockerconfigjson
 echo "=> ensuring e2e wafv2 web acl"
 aws wafv2 create-web-acl --name "${E2E_WAFV2_WEB_ACL_NAME}" --scope REGIONAL --default-action '{"Block":{}}'  --visibility-config '{"MetricName":"echoserver","CloudWatchMetricsEnabled": false,"SampledRequestsEnabled":false}' || true
 aws wafv2 list-web-acls --scope REGIONAL --output json | grep "webacl/${E2E_WAFV2_WEB_ACL_NAME}" | cut -d: -f2- | tr -d \",' ' > ${E2E_INPUT_DIR}/${E2E_INPUT_WAFV2_WEBACL}
-
-echo "=> ensuring e2e wafregional web acl"
-WAFREGIONAL_CHANGE_TOKEN=$(aws waf-regional get-change-token --output json | jq -r .ChangeToken)
-aws waf-regional create-web-acl --name "${E2E_WAF_WEB_ACL_NAME}" --metric-name "${E2E_WAF_WEB_ACL_NAME}" --default-action '{"Type":"BLOCK"}' --change-token "${WAFREGIONAL_CHANGE_TOKEN}" || true
-aws waf-regional list-web-acls --output json | grep -B1 "${E2E_WAF_WEB_ACL_NAME}" | grep WebACLId | tr -d \",' ' | cut -d: -f2 > ${E2E_INPUT_DIR}/${E2E_INPUT_WAF_WEBACL}

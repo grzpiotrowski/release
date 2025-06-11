@@ -101,7 +101,6 @@ tests:
       commands: |
         export ALBO_E2E_PLATFORM=ROSA
         export ALBO_E2E_WAFV2_WEBACL_ARN=$(cat ${SHARED_DIR}/wafv2-webacl)
-        export ALBO_E2E_WAF_WEBACL_ID=$(cat ${SHARED_DIR}/waf-webacl | head -1)
         make test-e2e
       from: src
       resources:

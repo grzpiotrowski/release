@@ -27,18 +27,3 @@ if [ -f "${E2E_INPUT_DIR}/wafv2-webacl" ]; then
 else
     echo "=> nothing to do for e2e wafv2 web acl"
 fi
-
-if [ -f "${E2E_INPUT_DIR}/waf-webacl" ]; then
-    # it's possible to create webacls with duplicate name using wafregional,
-    # we have to take this case into account
-    for id in $(cat "${E2E_INPUT_DIR}/waf-webacl"); do
-        echo "=> getting change token for e2e wafregional web acl: ${id}"
-        CHANGE_TOKEN=$(aws waf-regional get-change-token --output json | jq -r .ChangeToken)
-        if [ -n "${CHANGE_TOKEN}" ]; then
-            echo "=> deleting e2e wafregional web acl: ${id}"
-            aws waf-regional delete-web-acl --web-acl-id "${id}" --change-token "${CHANGE_TOKEN}" || true
-        fi
-    done
-else
-    echo "=> nothing to do for e2e wafregional web acl"
-fi
